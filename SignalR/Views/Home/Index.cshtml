@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <div id="chat">
+        <form action="/" method="post">
+            <label for="message">Message:</label>
+            <input type="text" id="message" />
+            <input type="submit" id="send" value="Send" />
+        </form>
+
+        <ul id="messages">
+        </ul>
+
+    </div>
+</div>
+
+<script src="~/lib/aspnet-signalr/signalr.min.js"></script>
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .build();
+
+    connection.start().catch(error => console.log(error));
+
+
+
+    connection.on("OnConnected", (connectionId) => {
+        console.log(connectionId)
+    });
+
+
+    document.getElementById('send').addEventListener("click", event => {
+        event.preventDefault();
+        var messageInput = document.getElementById('message');
+
+        var messageValue = messageInput.value;
+        messageInput.value = '';
+
+        connection.invoke("SendMessage", messageValue);
+        
+    })
+
+    connection.on("ReceiveMessage", (message) => {
+        appendLine(message)
+    });
+
+    function appendLine(line) {
+        let li = document.createElement('li');
+        li.innerText = line;
+        document.getElementById('messages').appendChild(li);
+    }
+</script>
